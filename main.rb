@@ -35,13 +35,14 @@ module Rcon
 	end
 
 	def self.looper(sock)
-		loop
-			pass = Readline.readline('rcon> ', true)
-			if pass.nil? #EOF
+		loop do
+			line = Readline.readline('rcon> ', true)
+			if line.nil? #EOF
+				puts
 				break
 			end
 
-			p = Rcon::RconPacket.new(10+pass.bytesize, 0, Rcon::PacketType::SERVERDATA_EXECCOMMAND, pass)
+			p = Rcon::RconPacket.new(10+line.bytesize, 0, Rcon::PacketType::SERVERDATA_EXECCOMMAND, line)
 			Rcon::send_to(p, $sock)
 			pr = Rcon.recv_from($sock)
 			puts pr[:body]
