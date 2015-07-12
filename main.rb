@@ -34,6 +34,19 @@ module Rcon
 		RconPacket.new(ary[0],ary[1],ary[2],ary[3])
 	end
 
+	def self.auth(sock)
+		pass = Readline.readline('Password> ')
+		p = Rcon::RconPacket.new(10+pass.bytesize, 0, Rcon::PacketType::SERVERDATA_AUTH, pass)
+		Rcon::send_to(p, sock)
+		pr = Rcon.recv_from(sock)
+		p pr
+		if pr[:id] == -1
+			return false
+		end
+
+		true
+	end
+
 	def self.looper(sock)
 		loop do
 			line = Readline.readline('rcon> ', true)
@@ -43,15 +56,15 @@ module Rcon
 			end
 
 			p = Rcon::RconPacket.new(10+line.bytesize, 0, Rcon::PacketType::SERVERDATA_EXECCOMMAND, line)
-			Rcon::send_to(p, $sock)
-			pr = Rcon.recv_from($sock)
+			Rcon::send_to(p, sock)
+			pr = Rcon.recv_from(sock)
 			puts pr[:body]
 		end
 	end
 end
 
 if ARGV.length != 2
-	exit
+	exit false
 end
 
 host = ARGV[0]
@@ -60,15 +73,9 @@ port = ARGV[1].to_i
 $sock = TCPSocket.new host, port
 
 begin
-	# auth
-	pass = Readline.readline('Password> ')
-	p = Rcon::RconPacket.new(10+pass.bytesize, 0, Rcon::PacketType::SERVERDATA_AUTH, pass)
-	Rcon::send_to(p, $sock)
-	pr = Rcon.recv_from($sock)
-	p pr
-	if pr[:id] == -1
+	unless Rcon.auth($sock)
 		puts "AUTH ERROR"
-		exit
+		exit false
 	end
 
 	Rcon.looper($sock)
