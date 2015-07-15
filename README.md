@@ -1,5 +1,4 @@
 # srcon-rb
----
 
 A (very) simple Valve **RCON client** written in **Ruby**.
 
