@@ -14,13 +14,9 @@ module Rcon
 
 	def self.send_to(packet, sock)
 		szb = [packet[:size]].pack 'l<'
-
 		idb = [packet[:id]].pack 'l<'
-
 		typeb = [packet[:type]].pack 'l<'
-
-		bodyb = [packet[:body]+"\0"].pack 'Z*'
-
+		bodyb = [packet[:body]].pack 'Z*'
 		msg = szb+idb+typeb+bodyb+"\0"
 
 		sock.sendmsg(msg)
@@ -39,7 +35,6 @@ module Rcon
 		p = Rcon::RconPacket.new(10+pass.bytesize, 0, Rcon::PacketType::SERVERDATA_AUTH, pass)
 		Rcon::send_to(p, sock)
 		pr = Rcon.recv_from(sock)
-		p pr
 		if pr[:id] == -1
 			return false
 		end
