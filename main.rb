@@ -32,6 +32,11 @@ module Rcon
 
 	def self.auth(sock)
 		pass = Readline.readline('Password> ')
+		if pass.nil? #EOF
+			puts
+			return false
+		end
+
 		p = Rcon::RconPacket.new(10+pass.bytesize, 0, Rcon::PacketType::SERVERDATA_AUTH, pass)
 		Rcon::send_to(p, sock)
 		pr = Rcon.recv_from(sock)
