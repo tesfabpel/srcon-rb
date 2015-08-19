@@ -1,6 +1,6 @@
-
 require 'socket'
 require 'readline'
+require 'optparse'
 
 module Rcon
 	RconPacket = Struct.new(:size, :id, :type, :body)
@@ -63,23 +63,52 @@ module Rcon
 	end
 end
 
-if ARGV.length != 2
-	exit false
-end
+def main
+	config = {}
+	op = OptionParser.new do |opts|
+		opts.banner = "Usage: ruby srcon.rb host port [-p -|password] [-- command]"
 
-host = ARGV[0]
-port = ARGV[1].to_i
+		opts.separator ''
 
-$sock = TCPSocket.new host, port
+		opts.on('-p [password]', 'The password') do |pass|
+			if pass.nil?
+				# TODO: ERROR!
+				return
+			end
+			config[:password] = pass
+		end
+	end
 
-begin
-	unless Rcon.auth($sock)
-		puts "AUTH ERROR"
+	if ARGV.length < 2
+		STDERR.puts "ERROR! Missing required arguments."
+		STDERR.puts op.help
 		exit false
 	end
 
-	Rcon.looper($sock)
-rescue
+	host = ARGV.shift
+	port = ARGV.shift.to_i
+
+	op.parse!
+
+	puts config
+	exit
+
+	$sock = TCPSocket.new host, port
+
+	begin
+		unless Rcon.auth($sock)
+			STDERR.puts "AUTH ERROR"
+			exit false
+		end
+
+		Rcon.looper($sock)
+	rescue
+	end
+
+	$sock.close
+
 end
 
-$sock.close
+if __FILE__ == $0
+	main
+end
