@@ -4,7 +4,7 @@ A (very) simple Valve **RCON client** written in **Ruby**.
 
 Usage:
 ```
-ruby srcon.rb <host> <port> [-p -|password] [-- command]
+ruby srcon.rb host port [-p -|password] [-- command]
 ```
 
 If you pass `-p`, you can either specify the password as an argument, or via STDIN (if you pass `-`).

@@ -72,9 +72,13 @@ def main
 
 		opts.on('-p [password]', 'The password') do |pass|
 			if pass.nil?
-				# TODO: ERROR!
-				return
+				STDERR.puts 'ERROR: You need to specify a password if -p is present.'
+				opts.terminate
+				exit
 			end
+
+			pass = nil if pass == '-'
+
 			config[:password] = pass
 		end
 	end
@@ -88,10 +92,20 @@ def main
 	host = ARGV.shift
 	port = ARGV.shift.to_i
 
-	op.parse!
+	op.parse
 
-	puts config
-	exit
+	# Parse the -- argument
+	cmdi = ARGV.index '--'
+	unless cmdi.nil?
+		cmd_ary = ARGV[cmdi+1 .. -1]
+
+		if cmd_ary.nil?
+			STDERR.puts 'ERROR: Command is empty.'
+			exit
+		end
+		cmd = cmd_ary.join(' ')
+		config[:command] = cmd
+	end
 
 	$sock = TCPSocket.new host, port
 
